@@ -18,13 +18,19 @@ npm install imap-handler
 
 To parse a command you need to have the command as one complete string (including all literals) without the ending &lt;CR&gt;&lt;LF&gt;
 
-    imapHandler.parser(imapCommand);
+    imapHandler.parser(imapCommand[, options]);
 
 Where
 
   * **imapCommand** is an IMAP string without the final line break
+  * **options** is an optional options object (see below)
 
-The function return an object in the following form:
+Options
+
+  * **allowUntagged** (Boolean) by default parsing "*" tags are not allowed, set this value to true to accept untagged commands
+  * **allowSection** (Array) Not all atoms are allowed to have section (and partial) values, set the command names with this array (default value is `["BODY", "BODY.PEEK"]`)
+
+The function returns an object in the following form:
 
 ```
 {
@@ -40,6 +46,12 @@ The function return an object in the following form:
 }
 ```
 
+Where
+
+  * **tag** is a string containing the tag
+  * **command** is the first element after tag
+  * **attributes** (if present) is an array of next elements
+
 If section or partial values are not specified in the command, the values are also missing from the ATOM element
 
 For example
@@ -47,7 +59,7 @@ For example
 ```javascript
 var imapHandler = require("imap-handler");
 
-var parsed = imapHandler.parser("A1 FETCH (BODY[HEADER.FIELDS ({4}\r\nDate Subject)]<12.45> UID)");
+imapHandler.parser("A1 FETCH (BODY[HEADER.FIELDS ({4}\r\nDate Subject)]<12.45> UID)");
 ```
 
 Results in the following value:
