@@ -1,0 +1,23 @@
+{
+  "name": "imap-handler",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Parses IMAP commands",
+  "main": "index.js",
+  "scripts": {
+    "test": "nodeunit tests"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:andris9/imap-handler.git"
+  },
+  "keywords": [
+    "IMAP"
+  ],
+  "author": "Andris Reinman",
+  "license": "MIT",
+  "readmeFilename": "README.md",
+  "devDependencies": {
+    "nodeunit": "*"
+  }
+}
