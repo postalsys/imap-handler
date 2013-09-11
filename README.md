@@ -131,11 +131,11 @@ For example
 
 ```javascript
 var command = {
-    tag: "*", 
-    command: "OK", 
+    tag: "*",
+    command: "OK",
     attributes: [
         {
-            type: "SECTION", 
+            type: "SECTION",
             section: [
                 {type: "ATOM", value: "ALERT"}
             ]
