@@ -9,3 +9,75 @@ module.exports["Test compiler"] = function(test){
     test.equal(command, compiled);
     test.done()
 }
+
+module.exports["Test Types"] = {
+    "No attributes": function(test){
+        var parsed = {
+            tag: "*",
+            command: "CMD"
+        };
+        var compiled = compiler(parsed);
+
+        test.equal("* CMD", compiled);
+        test.done()
+    },
+
+    "TEXT": function(test){
+        var parsed = {
+            tag: "*",
+            command: "CMD",
+            attributes: [
+                {type: "TEXT", value: "Tere tere!"}
+            ]
+        };
+        var compiled = compiler(parsed);
+
+        test.equal("* CMD Tere tere!", compiled);
+        test.done()
+    },
+
+    "SECTION": function(test){
+        var parsed = {
+            tag: "*",
+            command: "CMD",
+            attributes: [
+                {type: "SECTION", section:[
+                    {type: "ATOM", value: "ALERT"}
+                ]}
+            ]
+        };
+        var compiled = compiler(parsed);
+
+        test.equal("* CMD [ALERT]", compiled);
+        test.done()
+    },
+
+    "ATOM": function(test){
+        var parsed = {
+            tag: "*",
+            command: "CMD",
+            attributes: [
+                {type: "ATOM", value: "ALERT"},
+                {type: "ATOM", value: "\\ALERT"},
+                {type: "ATOM", value: "NO ALERT"}
+            ]
+        };
+        var compiled = compiler(parsed);
+        test.equal("* CMD ALERT \\ALERT \"NO ALERT\"", compiled);
+        test.done()
+    },
+
+    "SEQUENCE": function(test){
+        var parsed = {
+            tag: "*",
+            command: "CMD",
+            attributes: [
+                {type: "SEQUENCE", value: "*:4,5,6"}
+            ]
+        };
+        var compiled = compiler(parsed);
+
+        test.equal("* CMD *:4,5,6", compiled);
+        test.done()
+    }
+}

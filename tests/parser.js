@@ -134,7 +134,7 @@ module.exports["ATTRIBUTE"] = {
 
     "Get attribute fail (invalid whitespace at end)": function(test){
         try{
-            console.log(parser("TAG1 CMD FED "));
+            parser("TAG1 CMD FED ");
             test.ok(false);
         }catch(E){
             test.ok(E);
@@ -144,7 +144,7 @@ module.exports["ATTRIBUTE"] = {
 
     "Get attribute fail (invalid whitespace between value)": function(test){
         try{
-            console.log(parser("TAG1 CMD FED  TED"));
+            parser("TAG1 CMD FED  TED");
             test.ok(false);
         }catch(E){
             test.ok(E);
@@ -184,21 +184,10 @@ module.exports["ATTRIBUTE"] = {
         test.done();
     },
 
-    "NUMBER": function(test){
-        try{
-            test.deepEqual(parser("TAG1 CMD 1234").attributes, [{type:"NUMBER", value: 1234}]);
-            test.deepEqual(parser("TAG1 CMD 12345 123").attributes, [{type:"NUMBER", value:12345}, {type:"NUMBER", value:123}]);
-            test.ok(true);
-        }catch(E){
-            test.ifError(E);
-        }
-        test.done();
-    },
-
     "LIST": function(test){
         try{
-            test.deepEqual(parser("TAG1 CMD (1234)").attributes, [[{type:"NUMBER", value: 1234}]]);
-            test.deepEqual(parser("TAG1 CMD (1234 TERE)").attributes, [[{type:"NUMBER", value: 1234}, {type:"ATOM", value: "TERE"}]]);
+            test.deepEqual(parser("TAG1 CMD (1234)").attributes, [[{type:"ATOM", value: 1234}]]);
+            test.deepEqual(parser("TAG1 CMD (1234 TERE)").attributes, [[{type:"ATOM", value: 1234}, {type:"ATOM", value: "TERE"}]]);
             test.ok(true);
         }catch(E){
             test.ifError(E);
@@ -335,6 +324,66 @@ module.exports["ATTRIBUTE"] = {
         }catch(E){
             test.ok(E);
         }
+        test.done();
+    },
+
+    "SEQUENCE": function(test){
+        try{
+            test.deepEqual(parser("TAG1 CMD *:4,5:7 TEST").attributes, [{type:"SEQUENCE", value:"*:4,5:7"}, {type:"ATOM", value:"TEST"}]);
+            test.ok(true);
+        }catch(E){
+            test.ifError(E);
+        }
+
+        try{
+            parser("TAG1 CMD *:4,5:");
+            test.ok(false);
+        }catch(E){
+            test.ok(E);
+        }
+
+        try{
+            parser("TAG1 CMD *:4,5:TEST TEST");
+            test.ok(false);
+        }catch(E){
+            test.ok(E);
+        }
+
+        try{
+            parser("TAG1 CMD *:4,5: TEST");
+            test.ok(false);
+        }catch(E){
+            test.ok(E);
+        }
+
+        try{
+            console.log(parser("TAG1 CMD *4,5 TEST"));
+            test.ok(false);
+        }catch(E){
+            test.ok(E);
+        }
+
+        try{
+            console.log(parser("TAG1 CMD *,5 TEST"));
+            test.ok(false);
+        }catch(E){
+            test.ok(E);
+        }
+
+        try{
+            console.log(parser("TAG1 CMD 5,* TEST"));
+            test.ok(false);
+        }catch(E){
+            test.ok(E);
+        }
+
+        try{
+            console.log(parser("TAG1 CMD 5, TEST"));
+            test.ok(false);
+        }catch(E){
+            test.ok(E);
+        }
+
         test.done();
     }
 

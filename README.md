@@ -37,10 +37,10 @@ The function returns an object in the following form:
     tag: "TAG",
     command: "COMMAND",
     attributes: [
+        {type: "SEQUENCE", value: "sequence-set"},
         {type: "ATOM", value: "atom", section:[section_elements], partial: [start, end]},
         {type: "STRING", value: "string"},
         {type: "LITERAL", value: "literal"},
-        {type: "NUMBER", value: 123},
         [list_elements]
     ]
 }
@@ -54,12 +54,14 @@ Where
 
 If section or partial values are not specified in the command, the values are also missing from the ATOM element
 
+**NB!** Sequence numbers are identified as ATOM values if the value contains only numbers.
+
 For example
 
 ```javascript
 var imapHandler = require("imap-handler");
 
-imapHandler.parser("A1 FETCH (BODY[HEADER.FIELDS ({4}\r\nDate Subject)]<12.45> UID)");
+imapHandler.parser("A1 FETCH *:4 (BODY[HEADER.FIELDS ({4}\r\nDate Subject)]<12.45> UID)");
 ```
 
 Results in the following value:
@@ -70,6 +72,10 @@ Results in the following value:
     "command": "FETCH",
     "attributes": [
         [
+            {
+                "type": "SEQUENCE",
+                "value": "*:4"
+            },
             {
                 "type": "ATOM",
                 "value": "BODY",
@@ -128,7 +134,7 @@ var command = {
                 {type: "ATOM", value: "ALERT"}
             ]
         },
-        {type:"ATOM", value: "NB! The server is shutting down"}
+        {type:"TEXT", value: "NB! The server is shutting down"}
     ]
 };
 
