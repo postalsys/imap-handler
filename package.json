@@ -4,7 +4,7 @@
   "description": "Parses IMAP commands",
   "main": "index.js",
   "scripts": {
-    "test": "./node_modules/.bin/grunt"
+    "test": "grunt"
   },
   "repository": {
     "type": "git",
