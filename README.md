@@ -120,7 +120,12 @@ Where
 
   * **commandObject** is an object parsed with `imapHandler.parser()` or self generated
 
-The function returns a string
+The function returns a string.
+
+The input object differs from the parsed object with the following aspects:
+
+  * **string**, **number** and **null** (null values are all non-number and non-string falsy values) are allowed to use directly - `{type: "STRING", value: "hello"}` can be replaced with `"hello"`
+  * Additional types are used: `SECTION` which is an alias for `ATOM` and `TEXT` which returns the input string as given with no modification (useful for server messages).
 
 For example
 
