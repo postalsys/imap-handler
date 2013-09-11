@@ -94,5 +94,20 @@ module.exports["Test Types"] = {
 
         test.equal("* CMD NIL NIL", compiled);
         test.done()
+    },
+
+    "TEXT": function(test){
+        var parsed = {
+            tag: "*",
+            command: "CMD",
+            attributes: [
+                {type: "String", value: "Tere tere!"},
+                "Vana kere"
+            ]
+        };
+        var compiled = compiler(parsed);
+
+        test.equal("* CMD \"Tere tere!\" \"Vana kere\"", compiled);
+        test.done()
     }
 }
