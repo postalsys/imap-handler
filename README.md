@@ -55,6 +55,7 @@ Where
 If section or partial values are not specified in the command, the values are also missing from the ATOM element
 
 **NB!** Sequence numbers are identified as ATOM values if the value contains only numbers.
+**NB!** NIL atoms are always identified as `null` values, even though in some cases it might be an ATOM with value `"NIL"`
 
 For example
 
