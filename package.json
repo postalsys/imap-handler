@@ -4,7 +4,7 @@
   "description": "Parses IMAP commands",
   "main": "index.js",
   "scripts": {
-    "test": "nodeunit tests"
+    "test": "grunt"
   },
   "repository": {
     "type": "git",
@@ -17,6 +17,9 @@
   "license": "MIT",
   "readmeFilename": "README.md",
   "devDependencies": {
-    "nodeunit": "*"
+    "nodeunit": "*",
+    "grunt": "~0.4.1",
+    "grunt-contrib-jshint": "~0.6.4",
+    "grunt-contrib-nodeunit": "~0.2.0"
   }
 }
