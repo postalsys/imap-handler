@@ -79,5 +79,20 @@ module.exports["Test Types"] = {
 
         test.equal("* CMD *:4,5,6", compiled);
         test.done()
+    },
+
+    "NIL": function(test){
+        var parsed = {
+            tag: "*",
+            command: "CMD",
+            attributes: [
+                null,
+                null
+            ]
+        };
+        var compiled = compiler(parsed);
+
+        test.equal("* CMD NIL NIL", compiled);
+        test.done()
     }
 }
