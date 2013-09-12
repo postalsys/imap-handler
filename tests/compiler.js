@@ -109,5 +109,19 @@ module.exports["Test Types"] = {
 
         test.equal("* CMD \"Tere tere!\" \"Vana kere\"", compiled);
         test.done()
+    },
+
+    "No Command": function(test){
+        var parsed = {
+            tag: "*",
+            attributes: [
+                1,
+                {type:"ATOM", value: "EXPUNGE"}
+            ]
+        };
+        var compiled = compiler(parsed);
+
+        test.equal("* 1 EXPUNGE", compiled);
+        test.done()
     }
 }
