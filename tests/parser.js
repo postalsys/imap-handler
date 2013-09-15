@@ -118,6 +118,14 @@ module.exports["COMMAND"] = {
             test.ok(E);
         }
         test.done();
+    },
+    "Get multi word command": function(test){
+        try{
+            test.equal(parser("TAG1 UID FETCH").command, "UID FETCH");
+        }catch(E){
+            test.ifError(E);
+        }
+        test.done();
     }
 }
 
@@ -330,6 +338,20 @@ module.exports["ATTRIBUTE"] = {
     "SEQUENCE": function(test){
         try{
             test.deepEqual(parser("TAG1 CMD *:4,5:7 TEST").attributes, [{type:"SEQUENCE", value:"*:4,5:7"}, {type:"ATOM", value:"TEST"}]);
+            test.ok(true);
+        }catch(E){
+            test.ifError(E);
+        }
+
+        try{
+            test.deepEqual(parser("TAG1 CMD 1:* TEST").attributes, [{type:"SEQUENCE", value:"1:*"}, {type:"ATOM", value:"TEST"}]);
+            test.ok(true);
+        }catch(E){
+            test.ifError(E);
+        }
+
+        try{
+            test.deepEqual(parser("TAG1 CMD *:4 TEST").attributes, [{type:"SEQUENCE", value:"*:4"}, {type:"ATOM", value:"TEST"}]);
             test.ok(true);
         }catch(E){
             test.ifError(E);
