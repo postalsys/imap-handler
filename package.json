@@ -1,6 +1,6 @@
 {
   "name": "imap-handler",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "Parses IMAP commands",
   "main": "index.js",
   "scripts": {
