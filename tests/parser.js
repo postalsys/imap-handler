@@ -174,6 +174,7 @@ module.exports["ATTRIBUTE"] = {
         try{
             test.deepEqual(parser("TAG1 CMD ABCDE").attributes, [{type:"ATOM", value:"ABCDE"}]);
             test.deepEqual(parser("TAG1 CMD ABCDE DEFGH").attributes, [{type:"ATOM", value:"ABCDE"}, {type:"ATOM", value:"DEFGH"}]);
+            test.deepEqual(parser("TAG1 CMD %").attributes, [{type:"ATOM", value:"%"}]);
             test.ok(true);
         }catch(E){
             test.ifError(E);
