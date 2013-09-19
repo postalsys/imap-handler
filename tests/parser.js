@@ -175,6 +175,10 @@ module.exports["ATTRIBUTE"] = {
             test.deepEqual(parser("TAG1 CMD ABCDE").attributes, [{type:"ATOM", value:"ABCDE"}]);
             test.deepEqual(parser("TAG1 CMD ABCDE DEFGH").attributes, [{type:"ATOM", value:"ABCDE"}, {type:"ATOM", value:"DEFGH"}]);
             test.deepEqual(parser("TAG1 CMD %").attributes, [{type:"ATOM", value:"%"}]);
+            test.deepEqual(parser("12.82 STATUS [Gmail].Trash (UIDNEXT UNSEEN HIGHESTMODSEQ)").attributes, [ { type: 'ATOM', value: '[Gmail].Trash' },
+                  [ { type: 'ATOM', value: 'UIDNEXT' },
+                    { type: 'ATOM', value: 'UNSEEN' },
+                    { type: 'ATOM', value: 'HIGHESTMODSEQ' } ] ]);
             test.ok(true);
         }catch(E){
             test.ifError(E);
