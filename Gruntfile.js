@@ -6,14 +6,14 @@ module.exports = function(grunt) {
     grunt.initConfig({
         pkg: grunt.file.readJSON("package.json"),
         jshint: {
-            all: ["Gruntfile.js", "lib/**/*.js", "index.js"],
+            all: ["Gruntfile.js", "lib/**/*.js", "tests/**/*.js", "index.js"],
             options: {
-               "node": true,
-               "globalstrict": true,
-               "evil": true,
-               "unused": true,
-               "undef": true,
-               "newcap": true
+                "node": true,
+                "globalstrict": true,
+                "evil": true,
+                "unused": true,
+                "undef": true,
+                "newcap": true
             }
         },
         nodeunit: {
