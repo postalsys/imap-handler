@@ -1,6 +1,6 @@
-"use strict";
+'use strict';
 
 module.exports = {
-    parser: require("./lib/parser"),
-    compiler: require("./lib/compiler")
+    parser: require('./lib/parser'),
+    compiler: require('./lib/compiler')
 };

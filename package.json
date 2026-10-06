@@ -1,24 +1,41 @@
 {
-  "name": "imap-handler",
-  "version": "0.1.12",
-  "description": "Parses IMAP commands",
-  "main": "index.js",
-  "scripts": {
-    "test": "grunt"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git@github.com:andris9/imap-handler.git"
-  },
-  "keywords": [
-    "IMAP"
-  ],
-  "author": "Andris Reinman",
-  "license": "MIT",
-  "readmeFilename": "README.md",
-  "devDependencies": {
-    "grunt": "~0.4.5",
-    "grunt-contrib-jshint": "~0.11.2",
-    "grunt-contrib-nodeunit": "~0.4.1"
-  }
+    "name": "imap-handler",
+    "version": "0.1.12",
+    "description": "Parses and compiles IMAP commands",
+    "main": "index.js",
+    "files": [
+        "index.js",
+        "lib"
+    ],
+    "scripts": {
+        "prepare": "git rev-parse --git-dir >/dev/null 2>&1 && git config core.hooksPath .githooks || true",
+        "test": "npm run lint && npm run test:unit",
+        "test:unit": "node --test test/*.js",
+        "lint": "eslint",
+        "format": "prettier --write .",
+        "format:check": "prettier --check .",
+        "update": "rm -rf node_modules package-lock.json && ncu -u && npm install"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/postalsys/imap-handler.git"
+    },
+    "bugs": {
+        "url": "https://github.com/postalsys/imap-handler/issues"
+    },
+    "homepage": "https://github.com/postalsys/imap-handler#readme",
+    "keywords": [
+        "IMAP"
+    ],
+    "author": "Postal Systems OÜ",
+    "license": "MIT",
+    "devDependencies": {
+        "@eslint/js": "10.0.1",
+        "eslint": "10.12.0",
+        "globals": "17.13.0",
+        "prettier": "3.9.9"
+    },
+    "engines": {
+        "node": ">=20.0.0"
+    }
 }
