@@ -260,4 +260,7 @@ describe('Round trips', () => {
             assert.equal(compiler(parser(command)), command);
         }
     });
+    it('refuses TEXT chars that turn into line breaks when written as binary', () => {
+        assert.throws(() => compiler({ tag: '*', command: 'OK', attributes: [{ type: 'TEXT', value: 'hi\u010d\u010a* BYE injected' }] }));
+    });
 });
