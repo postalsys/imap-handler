@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.0.1](https://github.com/postalsys/imap-handler/compare/v1.0.0...v1.0.1) (2026-10-07)
+
+
+### Bug Fixes
+
+* allow only 0-9 in DIGIT ([e6266e9](https://github.com/postalsys/imap-handler/commit/e6266e90b02580a66f1e2c53646b7491f5548de4))
+* **compiler:** quote values per RFC 3501 and refuse unsafe output ([7bade8c](https://github.com/postalsys/imap-handler/commit/7bade8ca575349ba7ed41096a7ebd5122c5b080f))
+* **parser:** follow RFC 3501 grammar for sets, strings, literals and partials ([89b0b8a](https://github.com/postalsys/imap-handler/commit/89b0b8a41ec9150180d20715dc1859da098ab74d))
+
 ## [1.0.0](https://github.com/postalsys/imap-handler/compare/v0.1.12...v1.0.0) (2026-10-06)
 
 
