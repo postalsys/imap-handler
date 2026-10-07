@@ -65,9 +65,18 @@ describe('COMMAND', () => {
     });
 
     it('Get command fail (invalid char)', () => {
-        assert.throws(() => {
-            parser('TAG1 CM=D');
-        });
+        // RFC 3501 9: atom-specials and 8-bit octets are not ATOM-CHARs
+        for (const command of ['CM(D', 'CM"D', 'CM%D', 'CM*D', 'CM]D', 'CM{D', 'CM\\D', 'CM\x7fD', 'CM\xe9D']) {
+            assert.throws(() => parser('TAG1 ' + command), /Unexpected char/, command);
+        }
+    });
+
+    // RFC 3501 9: x-command = "X" atom, auth-type = atom
+    it('Get command with atom chars', () => {
+        assert.equal(parser('TAG1 X-FOO.BAR').command, 'X-FOO.BAR');
+        assert.equal(parser('TAG1 CM=D').command, 'CM=D');
+        assert.equal(parser('TAG1 AUTHENTICATE PLAIN-CLIENTTOKEN').command, 'AUTHENTICATE PLAIN-CLIENTTOKEN');
+        assert.equal(parser('TAG1 AUTHENTICATE SCRAM-SHA-256 =').command, 'AUTHENTICATE SCRAM-SHA-256');
     });
     it('Get multi word command', () => {
         assert.equal(parser('TAG1 UID FETCH').command, 'UID FETCH');

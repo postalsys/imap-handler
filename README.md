@@ -63,7 +63,7 @@ The function returns an object in the following form:
 Where
 
 - **tag** is a string containing the tag
-- **command** is the first element after tag
+- **command** is the first element after tag. It is an atom (RFC 3501 section 9, `x-command = "X" atom`), so besides letters and digits it can hold chars like `-`, `.`, `/` or `=`. Do not use it to build file paths without checking it first
 - **attributes** (if present) is an array of next elements
 
 If section or partial values are not specified in the command, the values are also missing from the ATOM element
