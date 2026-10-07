@@ -607,6 +607,26 @@ describe('Literals', () => {
     });
 });
 
+describe('number64 option', () => {
+    // RFC 9051 section 9: partial-range = number64 ["." nz-number64], literal = "{" number64 ["+"] "}"
+    it('accepts partial ranges above 32 bits', () => {
+        assert.deepEqual(parser('A1 FETCH 1 BODY[]<4294967296.4294967297>', { number64: true }).attributes[1].partial, [4294967296, 4294967297]);
+        assert.deepEqual(parser('A1 FETCH 1 BODY[]<9007199254740991>', { number64: true }).attributes[1].partial, [9007199254740991]);
+        assert.throws(() => parser('A1 FETCH 1 BODY[]<4294967296.1>'));
+    });
+
+    it('refuses values that can not be represented exactly', () => {
+        assert.throws(() => parser('A1 FETCH 1 BODY[]<9007199254740992>', { number64: true }), /Invalid partial/);
+        assert.throws(() => parser('A1 FETCH 1 BODY[]<0.0>', { number64: true }), /Invalid partial/);
+    });
+
+    it('checks literal sizes against the 64-bit limit', () => {
+        // the size is valid, there is just not enough input
+        assert.throws(() => parser('A1 CMD {4294967296}\r\nabc', { number64: true }), /Unexpected end of input/);
+        assert.deepEqual(parser('A1 CMD {3}\r\nabc', { number64: true }).attributes, [{ type: 'LITERAL', value: 'abc' }]);
+    });
+});
+
 describe('Partials', () => {
     it('validates the partial range', () => {
         assert.deepEqual(parser('A1 FETCH 1 BODY[]<5>').attributes[1].partial, [5]);

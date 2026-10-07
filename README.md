@@ -40,6 +40,7 @@ Options
 - **multiWords** (Array) commands that are joined with the next word, default value is `["UID", "AUTHENTICATE"]`
 - **literalPlus** (Boolean) accept non-synchronizing literals `{n+}` (RFC 7888), and `~{n+}` when `literal8` is set as well (RFC 4466)
 - **literal8** (Boolean) accept `~{n}` literals (RFC 3516, RFC 9051), returned as `{type: "LITERAL8", value}` nodes. Unlike a `LITERAL`, the value may contain NUL
+- **number64** (Boolean) accept literal sizes and partial ranges (`<offset.length>`) up to `Number.MAX_SAFE_INTEGER` as the RFC 9051 number64 rule allows. Without it both are limited to 32 bits (RFC 3501 number)
 - **utf8** (Boolean) accept valid UTF-8 in quoted strings (RFC 9051 and RFC 9755 UTF8=ACCEPT). The value is still returned as a binary string (one char per octet). Invalid UTF-8 (overlong forms, surrogates, truncated sequences, values above U+10FFFF) still throws
 
 The function returns an object in the following form:
