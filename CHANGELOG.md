@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/postalsys/imap-handler/compare/v1.0.1...v1.1.0) (2026-10-07)
+
+
+### Features
+
+* **compiler:** write adjacent lists without a space where the grammar has none ([9e2d37d](https://github.com/postalsys/imap-handler/commit/9e2d37d8a2365dbbace33542df364e9930c8d800))
+
 ## [1.0.1](https://github.com/postalsys/imap-handler/compare/v1.0.0...v1.0.1) (2026-10-07)
 
 
