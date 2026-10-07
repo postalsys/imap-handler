@@ -62,8 +62,10 @@ Where
 
 If section or partial values are not specified in the command, the values are also missing from the ATOM element
 
-**NB!** Sequence numbers are identified as ATOM values if the value contains only numbers.
+**NB!** Sequence numbers are identified as ATOM values if the value contains only numbers or is a single `*`.
 **NB!** NIL atoms are always identified as `null` values, even though in some cases it might be an ATOM with value `"NIL"`
+
+Syntax errors throw an `Error` with `code` set to `"ParserError"` (or `"MaxNestingReached"` when lists and sections are nested too deeply) and `pos` set to the position of the error in the input.
 
 For example
 
