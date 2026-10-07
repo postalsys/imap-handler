@@ -36,7 +36,11 @@ Where
 Options
 
 - **allowUntagged** (Boolean) by default parsing "*" tags are not allowed, set this value to true to accept untagged commands
-- **allowSection** (Array) Not all atoms are allowed to have section (and partial) values, set the command names with this array (default value is `["BODY", "BODY.PEEK"]`)
+- **allowSection** (Array) Not all atoms are allowed to have section (and partial) values, set the command names with this array (default value is `["BODY", "BODY.PEEK"]`). Add `"BINARY"`, `"BINARY.PEEK"` and `"BINARY.SIZE"` for the BINARY extension (RFC 3516)
+- **multiWords** (Array) commands that are joined with the next word, default value is `["UID", "AUTHENTICATE"]`
+- **literalPlus** (Boolean) accept non-synchronizing literals `{n+}` (RFC 7888), and `~{n+}` when `literal8` is set as well (RFC 4466)
+- **literal8** (Boolean) accept `~{n}` literals (RFC 3516, RFC 9051), returned as `{type: "LITERAL8", value}` nodes. Unlike a `LITERAL`, the value may contain NUL
+- **utf8** (Boolean) accept valid UTF-8 in quoted strings (RFC 9051 and RFC 9755 UTF8=ACCEPT). The value is still returned as a binary string (one char per octet). Invalid UTF-8 (overlong forms, surrogates, truncated sequences, values above U+10FFFF) still throws
 
 The function returns an object in the following form:
 
@@ -49,6 +53,7 @@ The function returns an object in the following form:
         {type: "ATOM", value: "atom", section:[section_elements], partial: [start, end]},
         {type: "STRING", value: "string"},
         {type: "LITERAL", value: "literal"},
+        {type: "LITERAL8", value: "literal8"},
         [list_elements]
     ]
 }
@@ -121,11 +126,12 @@ Results in the following value:
 
 You can "compile" parsed or self generated IMAP command obejcts to IMAP command strings with
 
-    imapHandler.compiler(commandObject);
+    imapHandler.compiler(commandObject[, options]);
 
 Where
 
 - **commandObject** is an object parsed with `imapHandler.parser()` or self generated
+- **options** is an optional options object. Set `utf8: true` to write values that are valid UTF-8 as quoted strings instead of literals (RFC 9051, RFC 9755 UTF8=ACCEPT)
 
 The function returns a string.
 
@@ -133,6 +139,7 @@ The input object differs from the parsed object with the following aspects:
 
 - **string**, **number** and **null** (null values are all non-number and non-string falsy values) are allowed to use directly - `{type: "STRING", value: "hello"}` can be replaced with `"hello"`
 - Additional types are used: `SECTION` which is an alias for `ATOM` and `TEXT` which returns the input string as given with no modification (useful for server messages).
+- `LITERAL8` nodes are written as `~{n}` literals, for example in a FETCH BINARY response (RFC 3516).
 
 Values are treated as binary strings (one character per octet), and `Buffer` values are accepted as well. Strings are written as quoted strings, where only `"` and `\` are escaped. A value that contains CR, LF, NUL or 8-bit characters can not be quoted, so it is written as a literal instead. ATOM values that are not valid atoms are encoded the same way.
 

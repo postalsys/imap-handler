@@ -21,8 +21,8 @@ Releases are automated with release-please: use Conventional Commit messages (`f
 
 ## Architecture
 
-- `lib/parser.js`: `ParserInstance` reads the tag, the command (joining `options.multiWords` such as `UID FETCH` into one command) and hands the rest to `TokenParser`, a character-by-character state machine that builds a node tree and then walks it into the plain `attributes` array returned to the caller, with upper-cased types (`ATOM`, `STRING`, `LITERAL`, `SEQUENCE`, `LIST`, `SECTION`, `PARTIAL`). Options: `allowUntagged`, `allowSection`, `multiWords`, `literalPlus`.
-- `lib/compiler.js`: the inverse, turns `{ tag, command, attributes }` back into an IMAP string, choosing quoting or literals per value. It also accepts `TEXT` nodes (written unquoted), which the parser never produces.
+- `lib/parser.js`: `ParserInstance` reads the tag, the command (joining `options.multiWords` such as `UID FETCH` into one command) and hands the rest to `TokenParser`, a character-by-character state machine that builds a node tree and then walks it into the plain `attributes` array returned to the caller, with upper-cased types (`ATOM`, `STRING`, `LITERAL`, `LITERAL8`, `SEQUENCE`, `LIST`, `SECTION`, `PARTIAL`). Options: `allowUntagged`, `allowSection`, `multiWords`, `literalPlus`, `literal8` (accept `~{n}`), `utf8` (accept UTF-8 in quoted strings). The default is strict RFC 3501 grammar, extensions are opt-in.
+- `lib/compiler.js`: the inverse, turns `{ tag, command, attributes }` back into an IMAP string, choosing quoting or literals per value. It also accepts `TEXT` nodes (written unquoted), which the parser never produces, and `LITERAL8` nodes. The optional second argument `{ utf8: true }` quotes valid UTF-8 values instead of writing literals.
 - `lib/formal.js`: RFC 3501 character classes (`ATOM-CHAR`, `DIGIT`, ...) used by both, memoized on first call, plus a `verify` helper.
 
 ## Tests

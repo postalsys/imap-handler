@@ -640,3 +640,264 @@ describe('Limits and errors', () => {
         assert.deepEqual(options, { literalPlus: true });
     });
 });
+
+describe('literal8', () => {
+    it('parses ~{n} only with the literal8 option', () => {
+        // RFC 3516 7 and RFC 9051 9: literal8 = "~{" number64 "}" CRLF *OCTET
+        assert.deepEqual(parser('A1 APPEND INBOX (\\Seen) ~{5}\r\nab\x00cd', { literal8: true }).attributes, [
+            { type: 'ATOM', value: 'INBOX' },
+            [{ type: 'ATOM', value: '\\Seen' }],
+            { type: 'LITERAL8', value: 'ab\x00cd' }
+        ]);
+        assert.deepEqual(parser('A1 CMD ~{0}\r\n', { literal8: true }).attributes, [{ type: 'LITERAL8', value: '' }]);
+        assert.deepEqual(parser('A1 CMD (~{1}\r\n\xff ~{1}\n\x00)', { literal8: true }).attributes, [
+            [
+                { type: 'LITERAL8', value: '\xff' },
+                { type: 'LITERAL8', value: '\x00' }
+            ]
+        ]);
+        assert.throws(() => parser('A1 APPEND INBOX ~{3}\r\nabc'), { code: 'ParserError', pos: 17 });
+    });
+
+    it('keeps ~ an atom char', () => {
+        assert.deepEqual(parser('A1 SELECT ~user', { literal8: true }).attributes, [{ type: 'ATOM', value: '~user' }]);
+        assert.deepEqual(parser('A1 SELECT ~').attributes, [{ type: 'ATOM', value: '~' }]);
+        assert.throws(() => parser('A1 SELECT a~{1}\r\nx', { literal8: true }));
+    });
+
+    it('accepts ~{n+} only together with literalPlus', () => {
+        // RFC 4466 3: the "+" is only allowed when both LITERAL+ and BINARY are supported
+        assert.deepEqual(parser('A1 CMD ~{2+}\r\n\x00\x01', { literal8: true, literalPlus: true }).attributes, [{ type: 'LITERAL8', value: '\x00\x01' }]);
+        assert.throws(() => parser('A1 CMD ~{2+}\r\n\x00\x01', { literal8: true }));
+    });
+
+    it('rejects malformed literal8', () => {
+        const options = { literal8: true, literalPlus: true };
+        assert.throws(() => parser('A1 CMD ~{}\r\n', options));
+        assert.throws(() => parser('A1 CMD ~{+1}\r\nx', options));
+        assert.throws(() => parser('A1 CMD ~{1}x', options));
+        assert.throws(() => parser('A1 CMD ~{a}\r\nx', options));
+        // a space after ~ makes it an atom followed by a plain literal
+        assert.deepEqual(parser('A1 CMD ~ {1}\r\nx', options).attributes, [
+            { type: 'ATOM', value: '~' },
+            { type: 'LITERAL', value: 'x' }
+        ]);
+        assert.throws(() => parser('A1 CMD ~{5}\r\nabcd', options), { pos: 17 });
+        assert.throws(() => parser('A1 CMD ~{4294967296}\r\n', options));
+        assert.throws(() => parser('A1 CMD ~{1}\r\nab', options));
+    });
+
+    it('still rejects NUL in a plain literal', () => {
+        assert.throws(() => parser('A1 CMD {1}\r\n\x00', { literal8: true }));
+    });
+});
+
+describe('UTF-8 in quoted strings', () => {
+    const utf8 = { utf8: true };
+
+    it('accepts UTF8-2, UTF8-3 and UTF8-4 with the utf8 option', () => {
+        // RFC 9051 9: QUOTED-CHAR =/ UTF8-2 / UTF8-3 / UTF8-4, RFC 9755 3: uQUOTED-CHAR
+        for (const chr of ['é', 'ß', '\u0080', '߿', 'ࠀ', '€', '퟿', '', '￿', '😀', '\u{10000}', '\u{10ffff}']) {
+            const value = Buffer.from('a' + chr + 'b').toString('binary');
+            assert.deepEqual(parser('A1 SELECT "' + value + '"', utf8).attributes, [{ type: 'STRING', value }], JSON.stringify(chr));
+        }
+        // value stays a binary string, escapes still work
+        assert.deepEqual(parser('A1 SELECT "\xc3\xa9\\"\xe2\x82\xac"', utf8).attributes, [{ type: 'STRING', value: '\xc3\xa9"\xe2\x82\xac' }]);
+    });
+
+    it('rejects 8-bit chars without the option', () => {
+        assert.throws(() => parser('A1 SELECT "\xc3\xa9"'), { pos: 11 });
+    });
+
+    it('rejects invalid UTF-8', () => {
+        // RFC 9755 3: the server MUST reject octets with the high bit set that are not valid UTF-8 (RFC 3629 4)
+        const invalid = {
+            'lone tail': '\x80',
+            'C0 overlong': '\xc0\xaf',
+            'C1 overlong': '\xc1\xbf',
+            'E0 overlong': '\xe0\x80\xaf',
+            'F0 overlong': '\xf0\x8f\xbf\xbf',
+            surrogate: '\xed\xa0\x80',
+            'above U+10FFFF': '\xf4\x90\x80\x80',
+            'F5 lead': '\xf5\x80\x80\x80',
+            'FF octet': '\xff',
+            'truncated 2': '\xc3',
+            'truncated 3': '\xe2\x82',
+            'truncated 4': '\xf0\x9f\x98',
+            'ASCII as tail': '\xc3A',
+            'too many tails': '\xc3\xa9\xa9',
+            'char above 0xFF': 'éĀ'
+        };
+        for (const [name, value] of Object.entries(invalid)) {
+            assert.throws(() => parser('A1 SELECT "' + value + '"', utf8), { code: 'ParserError' }, name);
+        }
+        // the position points at the start of the string value
+        assert.throws(() => parser('A1 SELECT "ab\xc3"', utf8), { pos: 11, message: /Invalid UTF-8/ });
+        assert.throws(() => parser('A1 SELECT x "\xe2\x82"', utf8), { pos: 13 });
+        // a char above 0xFF is not an octet
+        assert.throws(() => parser('A1 SELECT "Ā"', utf8), { pos: 11, message: /Unexpected char/ });
+    });
+
+    it('does not allow 8-bit chars outside quoted strings', () => {
+        assert.throws(() => parser('A1 SELECT \xc3\xa9', utf8));
+        assert.throws(() => parser('A1 SELECT "\xc3\xa9\r\n"', utf8));
+        assert.throws(() => parser('A1 SELECT "\xc3\xa9\x00"', utf8));
+    });
+});
+
+describe('Extension syntax', () => {
+    const atom = value => ({ type: 'ATOM', value });
+    const seq = value => ({ type: 'SEQUENCE', value });
+    const str = value => ({ type: 'STRING', value });
+
+    it('parses ESEARCH return options and SEARCHRES $', () => {
+        // RFC 4466 3: search-return-opts = SP "RETURN" SP "(" [search-return-opt *(SP search-return-opt)] ")"
+        assert.deepEqual(parser('A1 UID SEARCH RETURN (MIN MAX COUNT SAVE) UNDELETED').attributes, [
+            atom('RETURN'),
+            [atom('MIN'), atom('MAX'), atom('COUNT'), atom('SAVE')],
+            atom('UNDELETED')
+        ]);
+        assert.deepEqual(parser('A1 SEARCH RETURN () ALL').attributes, [atom('RETURN'), [], atom('ALL')]);
+        // RFC 9051 9: seq-last-command = "$", returned as an ATOM, the caller decides where it is allowed
+        assert.deepEqual(parser('A1 UID FETCH $ (FLAGS)').attributes, [atom('$'), [atom('FLAGS')]]);
+        assert.deepEqual(parser('A1 SEARCH UID $ OR $ 1:5').attributes, [atom('UID'), atom('$'), atom('OR'), atom('$'), seq('1:5')]);
+    });
+
+    it('parses PARTIAL ranges', () => {
+        // RFC 9394 4: partial-range-first = nz-number ":" nz-number, partial-range-last = MINUS nz-number ":" MINUS nz-number
+        assert.deepEqual(parser('A1 UID SEARCH RETURN (PARTIAL 1:100) UNDELETED').attributes, [
+            atom('RETURN'),
+            [atom('PARTIAL'), seq('1:100')],
+            atom('UNDELETED')
+        ]);
+        assert.deepEqual(parser('A1 UID SEARCH RETURN (PARTIAL -1:-100) UNDELETED').attributes, [
+            atom('RETURN'),
+            [atom('PARTIAL'), atom('-1:-100')],
+            atom('UNDELETED')
+        ]);
+        // RFC 9394 4: fetch-modifier =/ modifier-partial
+        assert.deepEqual(parser('A1 UID FETCH 1:* (FLAGS) (PARTIAL -1:-30)').attributes, [seq('1:*'), [atom('FLAGS')], [atom('PARTIAL'), atom('-1:-30')]]);
+    });
+
+    it('parses LIST-EXTENDED selection and return options', () => {
+        // RFC 5258 6: list = "LIST" [SP list-select-opts] SP mailbox SP mbox-or-pat [SP list-return-opts]
+        assert.deepEqual(parser('A1 LIST (SUBSCRIBED RECURSIVEMATCH) "" ("INBOX" %/* Drafts) RETURN (CHILDREN STATUS (MESSAGES SIZE))').attributes, [
+            [atom('SUBSCRIBED'), atom('RECURSIVEMATCH')],
+            str(''),
+            [str('INBOX'), atom('%/*'), atom('Drafts')],
+            atom('RETURN'),
+            [atom('CHILDREN'), atom('STATUS'), [atom('MESSAGES'), atom('SIZE')]]
+        ]);
+        assert.deepEqual(parser('A1 LIST () "" (* %)').attributes, [[], str(''), [atom('*'), atom('%')]]);
+    });
+
+    it('parses STATUS=SIZE', () => {
+        // RFC 8438 3: status-att =/ "SIZE", status-att-val =/ "SIZE" SP number64
+        assert.deepEqual(parser('A1 STATUS INBOX (MESSAGES SIZE)').attributes, [atom('INBOX'), [atom('MESSAGES'), atom('SIZE')]]);
+        assert.deepEqual(parser('* STATUS INBOX (SIZE 9223372036854775807)', { allowUntagged: true }).attributes, [
+            atom('INBOX'),
+            [atom('SIZE'), atom('9223372036854775807')]
+        ]);
+    });
+
+    it('parses BINARY sections when the caller allows them', () => {
+        // RFC 3516 7: fetch-att =/ "BINARY" [".PEEK"] section-binary [partial] / "BINARY.SIZE" section-binary
+        const allowSection = ['BODY', 'BODY.PEEK', 'BINARY', 'BINARY.PEEK', 'BINARY.SIZE'];
+        assert.deepEqual(parser('A1 FETCH 1 (BINARY[1.2]<0.100> BINARY.PEEK[] BINARY.SIZE[3])', { allowSection }).attributes, [
+            atom('1'),
+            [
+                { type: 'ATOM', value: 'BINARY', section: [atom('1.2')], partial: [0, 100] },
+                { type: 'ATOM', value: 'BINARY.PEEK', section: [] },
+                { type: 'ATOM', value: 'BINARY.SIZE', section: [atom('3')] }
+            ]
+        ]);
+        // the grammar has no partial after BINARY.SIZE, the parser still returns it for the caller to refuse
+        assert.deepEqual(parser('A1 FETCH 1 BINARY.SIZE[]<0.1>', { allowSection }).attributes[1], {
+            type: 'ATOM',
+            value: 'BINARY.SIZE',
+            section: [],
+            partial: [0, 1]
+        });
+        // without the names in allowSection [ and < are plain ATOM-CHARs as before
+        assert.deepEqual(parser('A1 FETCH 1 BINARY[1]<0.100>').attributes, [atom('1'), atom('BINARY[1]<0.100>')]);
+        // a FETCH BINARY response with a literal8
+        assert.deepEqual(parser('* 1 FETCH (BINARY[] ~{2}\r\n\x00\x01)', { allowUntagged: true, allowSection, literal8: true }).attributes, [
+            atom('FETCH'),
+            [
+                { type: 'ATOM', value: 'BINARY', section: [] },
+                { type: 'LITERAL8', value: '\x00\x01' }
+            ]
+        ]);
+    });
+
+    it('parses QRESYNC parameters and VANISHED', () => {
+        // RFC 7162 7: select-param =/ "QRESYNC" SP "(" uidvalidity SP mod-sequence-value [SP known-uids] [SP seq-match-data] ")"
+        assert.deepEqual(parser('A1 SELECT INBOX (QRESYNC (67890007 90060115194045000 1:29997 (5000,7500,9000 15000,22500,27000)))').attributes, [
+            atom('INBOX'),
+            [atom('QRESYNC'), [atom('67890007'), atom('90060115194045000'), seq('1:29997'), [seq('5000,7500,9000'), seq('15000,22500,27000')]]]
+        ]);
+        assert.deepEqual(parser('A1 UID FETCH 300:500 (FLAGS) (CHANGEDSINCE 12345 VANISHED)').attributes, [
+            seq('300:500'),
+            [atom('FLAGS')],
+            [atom('CHANGEDSINCE'), atom('12345'), atom('VANISHED')]
+        ]);
+        assert.deepEqual(parser('* VANISHED (EARLIER) 41,43:116', { allowUntagged: true }).attributes, [[atom('EARLIER')], seq('41,43:116')]);
+    });
+
+    it('parses CATENATE and MULTIAPPEND', () => {
+        // RFC 4469 5: append-data =/ "CATENATE" SP "(" cat-part *(SP cat-part) ")"
+        assert.deepEqual(
+            parser('A1 APPEND Drafts (\\Seen) CATENATE (URL "/Drafts;UIDVALIDITY=385759045/;UID=20/;section=HEADER" TEXT {4}\r\nab\r\n URL x)').attributes,
+            [
+                atom('Drafts'),
+                [atom('\\Seen')],
+                atom('CATENATE'),
+                [
+                    atom('URL'),
+                    str('/Drafts;UIDVALIDITY=385759045/;UID=20/;section=HEADER'),
+                    atom('TEXT'),
+                    { type: 'LITERAL', value: 'ab\r\n' },
+                    atom('URL'),
+                    atom('x')
+                ]
+            ]
+        );
+        // RFC 3502 formal syntax and RFC 4466 3: append = "APPEND" SP mailbox 1*append-message
+        assert.deepEqual(
+            parser('A1 APPEND INBOX (\\Seen) "01-Jan-2024 00:00:00 +0000" {1}\r\na () ~{1}\r\n\x00 {1+}\r\nc', { literal8: true, literalPlus: true })
+                .attributes,
+            [
+                atom('INBOX'),
+                [atom('\\Seen')],
+                str('01-Jan-2024 00:00:00 +0000'),
+                { type: 'LITERAL', value: 'a' },
+                [],
+                { type: 'LITERAL8', value: '\x00' },
+                { type: 'LITERAL', value: 'c' }
+            ]
+        );
+    });
+
+    it('parses SORT and THREAD', () => {
+        // RFC 5256 5: sort = ["UID" SP] "SORT" SP sort-criteria SP search-criteria
+        assert.deepEqual(parser('A1 UID SORT (REVERSE ARRIVAL SUBJECT) UTF-8 ALL').attributes, [
+            [atom('REVERSE'), atom('ARRIVAL'), atom('SUBJECT')],
+            atom('UTF-8'),
+            atom('ALL')
+        ]);
+        assert.deepEqual(parser('A1 THREAD REFERENCES "UTF-8" SINCE 1-Feb-1994').attributes, [
+            atom('REFERENCES'),
+            str('UTF-8'),
+            atom('SINCE'),
+            atom('1-Feb-1994')
+        ]);
+        // RFC 5267 5: extended-sort = ["UID" SP] "SORT" search-return-opts, ESORT return options before the sort criteria
+        assert.deepEqual(parser('A1 SORT RETURN (MIN) (DATE) UTF-8 ALL').attributes, [
+            atom('RETURN'),
+            [atom('MIN')],
+            [atom('DATE')],
+            atom('UTF-8'),
+            atom('ALL')
+        ]);
+    });
+});

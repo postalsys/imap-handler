@@ -278,3 +278,66 @@ describe('Round trips', () => {
         );
     });
 });
+
+describe('literal8', () => {
+    const compile = attributes => compiler({ tag: '*', command: 'CMD', attributes });
+
+    it('writes LITERAL8 nodes', () => {
+        // RFC 3516 4.3: msg-att-static =/ "BINARY" section-binary SP (nstring / literal8)
+        assert.equal(
+            compiler({
+                tag: '*',
+                command: '1 FETCH',
+                attributes: [
+                    [
+                        { type: 'ATOM', value: 'BINARY', section: [] },
+                        { type: 'LITERAL8', value: 'a\x00\r\n\xff' }
+                    ]
+                ]
+            }),
+            '* 1 FETCH (BINARY[] ~{5}\r\na\x00\r\n\xff)'
+        );
+        assert.equal(compile([{ type: 'literal8', value: Buffer.from([0, 1]) }, { type: 'LITERAL8' }]), '* CMD ~{2}\r\n\x00\x01 ~{0}\r\n');
+    });
+
+    it('round trips literal8 through the parser', () => {
+        const command = 'A1 APPEND INBOX (\\Seen) ~{3}\r\na\x00b';
+        assert.equal(compiler(parser(command, { literal8: true })), command);
+    });
+});
+
+describe('UTF-8 option', () => {
+    const compile = (attributes, options) => compiler({ tag: '*', command: 'CMD', attributes }, options);
+    const binary = value => Buffer.from(value).toString('binary');
+
+    it('keeps literals for 8-bit values by default', () => {
+        assert.equal(compile([binary('é')]), '* CMD {2}\r\n\xc3\xa9');
+        assert.equal(compile([binary('é')], {}), '* CMD {2}\r\n\xc3\xa9');
+    });
+
+    it('quotes valid UTF-8 with utf8: true', () => {
+        // RFC 9051 9 and RFC 9755 3: QUOTED-CHAR includes UTF8-2 / UTF8-3 / UTF8-4
+        const options = { utf8: true };
+        assert.equal(compile([binary('Pärnu "€" \\ 😀')], options), '* CMD "' + binary('Pärnu \\"€\\" \\\\ 😀') + '"');
+        assert.equal(
+            compile([{ type: 'STRING', value: binary('ß') }, { type: 'ATOM', value: binary('Ä') }, Buffer.from('ü')], options),
+            '* CMD "\xc3\x9f" "\xc3\x84" "\xc3\xbc"'
+        );
+        // LITERAL nodes stay literals
+        assert.equal(compile([{ type: 'LITERAL', value: binary('é') }], options), '* CMD {2}\r\n\xc3\xa9');
+    });
+
+    it('keeps literals for values that can not be quoted with utf8: true', () => {
+        const options = { utf8: true };
+        for (const value of ['\xc3', '\xc0\xaf', '\xed\xa0\x80', '\xf4\x90\x80\x80', '\xe9', '\xc3\xa9\r\n', '\xc3\xa9\x00', 'a\nb']) {
+            assert.equal(compile([value], options), '* CMD {' + value.length + '}\r\n' + value, JSON.stringify(value));
+        }
+        // chars above 0xFF are not binary, the high byte would be lost when written
+        assert.ok(compile(['éĀ'], options).startsWith('* CMD {'));
+    });
+
+    it('round trips UTF-8 quoted strings through the parser', () => {
+        const command = 'A1 SELECT "' + binary('Gesendete Objekte/Entwürfe') + '"';
+        assert.equal(compiler(parser(command, { utf8: true }), { utf8: true }), command);
+    });
+});
