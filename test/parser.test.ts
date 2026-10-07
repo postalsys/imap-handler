@@ -1,9 +1,10 @@
-'use strict';
+import { describe, it } from 'node:test';
+import assert from 'node:assert/strict';
 
-const { describe, it } = require('node:test');
-const assert = require('node:assert/strict');
+import { parser as parse } from '../src/index.js';
 
-const { parser } = require('../index');
+// the assertions walk into the attributes without narrowing their types
+const parser = (...args: Parameters<typeof parse>): any => parse(...args);
 
 describe('TAG', () => {
     it('Get tag success', () => {
@@ -777,9 +778,9 @@ describe('UTF-8 in quoted strings', () => {
 });
 
 describe('Extension syntax', () => {
-    const atom = value => ({ type: 'ATOM', value });
-    const seq = value => ({ type: 'SEQUENCE', value });
-    const str = value => ({ type: 'STRING', value });
+    const atom = (value: string) => ({ type: 'ATOM', value });
+    const seq = (value: string) => ({ type: 'SEQUENCE', value });
+    const str = (value: string) => ({ type: 'STRING', value });
 
     it('parses ESEARCH return options and SEARCHRES $', () => {
         // RFC 4466 3: search-return-opts = SP "RETURN" SP "(" [search-return-opt *(SP search-return-opt)] ")"

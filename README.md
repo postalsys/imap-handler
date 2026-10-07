@@ -16,7 +16,20 @@ Key-value pairs are also not identified, all lists are parsed into arrays, not o
 npm install imap-handler
 ```
 
-IMAP Handler requires Node.js 20 or newer.
+IMAP Handler requires Node.js 20 or newer. It also runs on the latest Bun and Deno releases, which CI tests as well.
+
+The package is written in TypeScript and ships both ES modules and CommonJS, each with type declarations:
+
+```javascript
+// ES modules
+import { parser, compiler } from 'imap-handler';
+// or: import imapHandler from 'imap-handler';
+
+// CommonJS
+const { parser, compiler } = require('imap-handler');
+```
+
+The modules are also available on their own: `imap-handler/lib/parser` and `imap-handler/lib/compiler` export the function, and `imap-handler/lib/formal` the RFC 3501 character classes (`formal.tag()`, `formal['ATOM-CHAR']()`, ...). With `require()` these load as the function or object itself, with `import` as the default export. Types such as `ParsedCommand`, `ParserOptions` and `CompilerInput` are exported from the package root.
 
 > IMAP Handler is maintained by the team behind **[EmailEngine](https://emailengine.app/?utm_source=imap-handler-readme&utm_medium=readme&utm_campaign=oss-docs&utm_content=note)**, a self-hosted email API that turns Gmail, Microsoft 365, and IMAP accounts into REST endpoints, with managed OAuth2 and webhooks for incoming mail. For a full featured IMAP client, see [ImapFlow](https://imapflow.com/).
 
@@ -76,7 +89,7 @@ Syntax errors throw an `Error` with `code` set to `"ParserError"` (or `"MaxNesti
 For example
 
 ```javascript
-var imapHandler = require('imap-handler');
+const imapHandler = require('imap-handler');
 
 imapHandler.parser('A1 FETCH *:4 (BODY[HEADER.FIELDS ({4}\r\nDate Subject)]<12.45> UID)');
 ```
@@ -157,7 +170,7 @@ bodies.adjacentLists = true;
 For example
 
 ```javascript
-var command = {
+const command = {
     tag: '*',
     command: 'OK',
     attributes: [
@@ -175,9 +188,13 @@ imapHandler.compiler(command);
 
 ## Development
 
+The source is in `src/`, `npm run build` compiles it into `dist/esm` and `dist/cjs`.
+
     npm install
-    npm test            # lint + all tests
+    npm test            # lint, type check and all tests
     npm run test:unit   # tests only
+    npm run test:bun    # tests under Bun
+    npm run test:deno   # tests under Deno
     npm run format      # apply Prettier formatting
 
 ## License
