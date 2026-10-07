@@ -426,17 +426,14 @@ describe('ATTRIBUTE', () => {
             }
         ]);
 
-        assert.throws(() => {
-            parser('TAG1 CMD *:4,5:');
-        });
+        // not a sequence set, but a valid atom
+        assert.deepEqual(parser('TAG1 CMD *:4,5:').attributes[0], { type: 'ATOM', value: '*:4,5:' });
 
-        assert.throws(() => {
-            parser('TAG1 CMD *:4,5: TEST');
-        });
+        // not a sequence set, but a valid atom
+        assert.deepEqual(parser('TAG1 CMD *:4,5: TEST').attributes[0], { type: 'ATOM', value: '*:4,5:' });
 
-        assert.throws(() => {
-            parser('TAG1 CMD *4,5 TEST');
-        });
+        // not a sequence set, but a valid atom
+        assert.deepEqual(parser('TAG1 CMD *4,5 TEST').attributes[0], { type: 'ATOM', value: '*4,5' });
 
         // RFC 3501 9: seq-number = nz-number / "*", so "*" may appear anywhere in a set
         assert.deepEqual(parser('TAG1 CMD *,5 TEST').attributes, [
@@ -461,9 +458,7 @@ describe('ATTRIBUTE', () => {
             }
         ]);
 
-        assert.throws(() => {
-            parser('TAG1 CMD 5, TEST');
-        });
+        assert.deepEqual(parser('TAG1 CMD 5, TEST').attributes[0], { type: 'ATOM', value: '5,' });
     });
 });
 
@@ -518,12 +513,19 @@ describe('Sequence sets', () => {
         ]);
     });
 
-    it('rejects malformed sequence sets', () => {
-        assert.throws(() => parser('A1 FETCH 5: FLAGS'), { code: 'ParserError' });
-        assert.throws(() => parser('A1 FETCH 5,'));
-        assert.throws(() => parser('A1 FETCH 1:2:3 FLAGS'));
-        assert.throws(() => parser('A1 FETCH *4 FLAGS'));
-        assert.throws(() => parser('A1 SEARCH (1:5,)'));
+    it('parses malformed sequence sets as atoms', () => {
+        // RFC 3501 9: ":" and "," are ATOM-CHARs, the commands that take a sequence set check it
+        assert.deepEqual(parser('A1 FETCH 5: FLAGS').attributes[0], { type: 'ATOM', value: '5:' });
+        assert.deepEqual(parser('A1 FETCH 5,').attributes[0], { type: 'ATOM', value: '5,' });
+        assert.deepEqual(parser('A1 FETCH 1:2:3 FLAGS').attributes[0], { type: 'ATOM', value: '1:2:3' });
+        assert.deepEqual(parser('A1 FETCH *4 FLAGS').attributes[0], { type: 'ATOM', value: '*4' });
+        assert.deepEqual(parser('A1 SEARCH (1:5,)').attributes[0], [{ type: 'ATOM', value: '1:5,' }]);
+    });
+
+    it('parses digit-led atoms that are not sequence sets', () => {
+        assert.deepEqual(parser('A CREATE 10:').attributes, [{ type: 'ATOM', value: '10:' }]);
+        assert.deepEqual(parser('A CREATE 12:30:00').attributes, [{ type: 'ATOM', value: '12:30:00' }]);
+        assert.deepEqual(parser('A STORE 1 +FLAGS (10:)').attributes[2], [{ type: 'ATOM', value: '10:' }]);
     });
 
     it('parses a large sequence set in linear time', () => {
