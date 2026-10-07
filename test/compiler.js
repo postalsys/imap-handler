@@ -263,4 +263,18 @@ describe('Round trips', () => {
     it('refuses TEXT chars that turn into line breaks when written as binary', () => {
         assert.throws(() => compiler({ tag: '*', command: 'OK', attributes: [{ type: 'TEXT', value: 'hi\u010d\u010a* BYE injected' }] }));
     });
+    it('writes adjacent lists without SP when the list asks for it', () => {
+        // only the lists at the start are joined, body-fld-param SP body-fld-dsp keeps its space
+        const bodies = [['TEXT', 'PLAIN'], ['TEXT', 'HTML'], 'ALTERNATIVE', ['BOUNDARY', 'x'], ['INLINE', null]];
+        bodies.adjacentLists = true;
+        const addresses = [
+            [null, null, 'a', 'b'],
+            [null, null, 'c', 'd']
+        ];
+        addresses.adjacentLists = true;
+        assert.strictEqual(
+            compiler({ tag: '*', attributes: [bodies, addresses, [['x'], ['y']]] }),
+            '* (("TEXT" "PLAIN")("TEXT" "HTML") "ALTERNATIVE" ("BOUNDARY" "x") ("INLINE" NIL)) ((NIL NIL "a" "b")(NIL NIL "c" "d")) (("x") ("y"))'
+        );
+    });
 });

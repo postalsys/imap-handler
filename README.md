@@ -136,6 +136,14 @@ The input object differs from the parsed object with the following aspects:
 
 Values are treated as binary strings (one character per octet), and `Buffer` values are accepted as well. Strings are written as quoted strings, where only `"` and `\` are escaped. A value that contains CR, LF, NUL or 8-bit characters can not be quoted, so it is written as a literal instead. ATOM values that are not valid atoms are encoded the same way.
 
+List members are separated by a space. A few rules of the IMAP grammar have no space between lists, for example the bodies of a multipart BODYSTRUCTURE (`body-type-mpart = 1*body SP media-subtype`) and the addresses of an ENVELOPE (`env-from = "(" 1*address ")"`). Set `adjacentLists = true` on such an array to write the lists at the start of the array without the space between them:
+
+```javascript
+const bodies = [['TEXT', 'PLAIN'], ['TEXT', 'HTML'], 'ALTERNATIVE'];
+bodies.adjacentLists = true;
+// (("TEXT" "PLAIN")("TEXT" "HTML") "ALTERNATIVE")
+```
+
 `TEXT` values, the tag and the command must not contain CR, LF or NUL, `SEQUENCE` values must be valid sequence sets, and every object node needs a known `type`. Otherwise the compiler throws an `Error` with `code` set to `"InvalidTextValue"`, `"InvalidSequenceSet"` or `"InvalidNodeType"`.
 
 For example
