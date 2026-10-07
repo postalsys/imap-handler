@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.0](https://github.com/postalsys/imap-handler/compare/v1.1.0...v1.2.0) (2026-10-07)
+
+
+### Features
+
+* **parser:** opt-in literal8 and UTF-8 quoted strings ([676ed60](https://github.com/postalsys/imap-handler/commit/676ed60fe49167cb56cb0ce144a260eed43d9095))
+* **parser:** opt-in literal8 and UTF-8 quoted strings ([047eb92](https://github.com/postalsys/imap-handler/commit/047eb925bc4ef05c2ba218c4f7df88f78a40fd6e))
+
 ## [1.1.0](https://github.com/postalsys/imap-handler/compare/v1.0.1...v1.1.0) (2026-10-07)
 
 
