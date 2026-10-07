@@ -1,6 +1,6 @@
 {
     "name": "imap-handler",
-    "version": "1.3.2",
+    "version": "1.4.0",
     "description": "Parses and compiles IMAP commands",
     "type": "module",
     "main": "./dist/cjs/index.js",
@@ -54,7 +54,7 @@
     "keywords": [
         "IMAP"
     ],
-    "author": "Postal Systems O\u00dc",
+    "author": "Postal Systems OÜ",
     "license": "MIT",
     "devDependencies": {
         "@eslint/js": "10.0.1",

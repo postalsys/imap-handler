@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.4.0](https://github.com/postalsys/imap-handler/compare/v1.3.2...v1.4.0) (2026-10-07)
+
+
+### Features
+
+* migrate to TypeScript with ES module and CommonJS builds ([4c60028](https://github.com/postalsys/imap-handler/commit/4c60028d53ba92772a2416e0919c64f95589c18d))
+* migrate to TypeScript with ES module and CommonJS builds ([3efd674](https://github.com/postalsys/imap-handler/commit/3efd67450cf90b83db53bffa91b05e3fe9cf14b9))
+
 ## [1.3.2](https://github.com/postalsys/imap-handler/compare/v1.3.1...v1.3.2) (2026-10-07)
 
 
