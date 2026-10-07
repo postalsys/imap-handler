@@ -433,3 +433,11 @@ describe('ATTRIBUTE', () => {
         });
     });
 });
+
+describe('LITERAL length', () => {
+    it('rejects letters in the literal length', () => {
+        // RFC 3501 9: number = 1*DIGIT, and DIGIT is 0-9 only
+        assert.throws(() => parser('TAG1 CMD {1e1}\r\n0123456789'));
+        assert.throws(() => parser('TAG1 CMD {a}\r\nx'));
+    });
+});
