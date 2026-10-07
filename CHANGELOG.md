@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.0](https://github.com/postalsys/imap-handler/compare/v1.2.0...v1.3.0) (2026-10-07)
+
+
+### Features
+
+* **parser:** add a number64 option for literal sizes and partial ranges ([899a08f](https://github.com/postalsys/imap-handler/commit/899a08f10c68e4882b62b7e59ccbed88548c610b))
+* **parser:** add a number64 option for literal sizes and partial ranges ([42b6ba1](https://github.com/postalsys/imap-handler/commit/42b6ba1ee80f0b401d4901941adfba833e8d167d))
+
 ## [1.2.0](https://github.com/postalsys/imap-handler/compare/v1.1.0...v1.2.0) (2026-10-07)
 
 
