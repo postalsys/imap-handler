@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.2](https://github.com/postalsys/imap-handler/compare/v1.3.1...v1.3.2) (2026-10-07)
+
+
+### Bug Fixes
+
+* **parser:** parse digit-led atoms that are not sequence sets as ATOM ([e6f0746](https://github.com/postalsys/imap-handler/commit/e6f074645e59144c1655f3159f5625d00d7cbef3))
+* **parser:** parse digit-led atoms that are not sequence sets as ATOM ([fadca87](https://github.com/postalsys/imap-handler/commit/fadca8778c1e29a8776bdb6549026e1a8d8334f5)), closes [#11](https://github.com/postalsys/imap-handler/issues/11)
+
 ## [1.3.1](https://github.com/postalsys/imap-handler/compare/v1.3.0...v1.3.1) (2026-10-07)
 
 
