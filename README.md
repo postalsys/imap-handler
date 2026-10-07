@@ -134,6 +134,10 @@ The input object differs from the parsed object with the following aspects:
 - **string**, **number** and **null** (null values are all non-number and non-string falsy values) are allowed to use directly - `{type: "STRING", value: "hello"}` can be replaced with `"hello"`
 - Additional types are used: `SECTION` which is an alias for `ATOM` and `TEXT` which returns the input string as given with no modification (useful for server messages).
 
+Values are treated as binary strings (one character per octet), and `Buffer` values are accepted as well. Strings are written as quoted strings, where only `"` and `\` are escaped. A value that contains CR, LF, NUL or 8-bit characters can not be quoted, so it is written as a literal instead. ATOM values that are not valid atoms are encoded the same way.
+
+`TEXT` values, the tag and the command must not contain CR, LF or NUL, `SEQUENCE` values must be valid sequence sets, and every object node needs a known `type`. Otherwise the compiler throws an `Error` with `code` set to `"InvalidTextValue"`, `"InvalidSequenceSet"` or `"InvalidNodeType"`.
+
 For example
 
 ```javascript
