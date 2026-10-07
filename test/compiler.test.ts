@@ -1,9 +1,10 @@
-'use strict';
+import { describe, it } from 'node:test';
+import assert from 'node:assert/strict';
 
-const { describe, it } = require('node:test');
-const assert = require('node:assert/strict');
+import { parser, compiler as compile_ } from '../src/index.js';
 
-const { parser, compiler } = require('../index');
+// the tests also pass values the types do not allow, to check how they are handled
+const compiler = (response: any, options?: any): string => compile_(response, options);
 
 it('Test compiler', () => {
     const command =
@@ -149,7 +150,7 @@ describe('Test Types', () => {
 });
 
 describe('Quoting and literals', () => {
-    const compile = attributes => compiler({ tag: '*', command: 'CMD', attributes });
+    const compile = (attributes: any) => compiler({ tag: '*', command: 'CMD', attributes });
 
     it('escapes only DQUOTE and backslash', () => {
         assert.equal(compile(['a\tb', 'x"y\\z', { type: 'STRING', value: '' }]), '* CMD "a\tb" "x\\"y\\\\z" ""');
@@ -174,7 +175,7 @@ describe('Quoting and literals', () => {
 });
 
 describe('Atoms', () => {
-    const compile = attributes => compiler({ tag: '*', command: 'CMD', attributes });
+    const compile = (attributes: any) => compiler({ tag: '*', command: 'CMD', attributes });
 
     it('writes flags as atoms', () => {
         assert.equal(
@@ -218,7 +219,7 @@ describe('Atoms', () => {
 });
 
 describe('Unchecked values', () => {
-    const compile = attributes => compiler({ tag: '*', command: 'CMD', attributes });
+    const compile = (attributes: any) => compiler({ tag: '*', command: 'CMD', attributes });
 
     it('validates sequence sets', () => {
         assert.equal(
@@ -265,9 +266,9 @@ describe('Round trips', () => {
     });
     it('writes adjacent lists without SP when the list asks for it', () => {
         // only the lists at the start are joined, body-fld-param SP body-fld-dsp keeps its space
-        const bodies = [['TEXT', 'PLAIN'], ['TEXT', 'HTML'], 'ALTERNATIVE', ['BOUNDARY', 'x'], ['INLINE', null]];
+        const bodies: any = [['TEXT', 'PLAIN'], ['TEXT', 'HTML'], 'ALTERNATIVE', ['BOUNDARY', 'x'], ['INLINE', null]];
         bodies.adjacentLists = true;
-        const addresses = [
+        const addresses: any = [
             [null, null, 'a', 'b'],
             [null, null, 'c', 'd']
         ];
@@ -280,7 +281,7 @@ describe('Round trips', () => {
 });
 
 describe('literal8', () => {
-    const compile = attributes => compiler({ tag: '*', command: 'CMD', attributes });
+    const compile = (attributes: any) => compiler({ tag: '*', command: 'CMD', attributes });
 
     it('writes LITERAL8 nodes', () => {
         // RFC 3516 4.3: msg-att-static =/ "BINARY" section-binary SP (nstring / literal8)
@@ -307,8 +308,8 @@ describe('literal8', () => {
 });
 
 describe('UTF-8 option', () => {
-    const compile = (attributes, options) => compiler({ tag: '*', command: 'CMD', attributes }, options);
-    const binary = value => Buffer.from(value).toString('binary');
+    const compile = (attributes: any, options?: any) => compiler({ tag: '*', command: 'CMD', attributes }, options);
+    const binary = (value: string) => Buffer.from(value).toString('binary');
 
     it('keeps literals for 8-bit values by default', () => {
         assert.equal(compile([binary('é')]), '* CMD {2}\r\n\xc3\xa9');
