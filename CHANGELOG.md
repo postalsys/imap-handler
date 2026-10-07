@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.1](https://github.com/postalsys/imap-handler/compare/v1.3.0...v1.3.1) (2026-10-07)
+
+
+### Bug Fixes
+
+* **parser:** accept atom chars in command names ([3d0af6d](https://github.com/postalsys/imap-handler/commit/3d0af6dc0019f3e84fb47e49bad815cfd3187fa6))
+* **parser:** accept atom chars in command names ([3560971](https://github.com/postalsys/imap-handler/commit/3560971c0fc7ec5fa8a946b07d66f60ace6ddceb)), closes [#1](https://github.com/postalsys/imap-handler/issues/1)
+
 ## [1.3.0](https://github.com/postalsys/imap-handler/compare/v1.2.0...v1.3.0) (2026-10-07)
 
 
